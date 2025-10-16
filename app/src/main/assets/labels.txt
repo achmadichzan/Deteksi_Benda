@@ -1,0 +1,6 @@
+botol
+galon
+hp
+pisau
+sandal
+sepatu
