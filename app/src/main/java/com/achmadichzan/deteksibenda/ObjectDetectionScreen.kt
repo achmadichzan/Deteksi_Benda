@@ -74,12 +74,12 @@ fun ObjectDetectionScreen() {
                 modifier = Modifier.fillMaxSize()
             ) {
                 CameraPreview(
-                    modifier = Modifier.fillMaxSize(), // Penting!
+                    modifier = Modifier.fillMaxSize(),
                     onBitmapReady = { detector.detect(it) }
                 )
                 BoundingBoxOverlay(
                     boundingBoxes = boxes,
-                    modifier = Modifier.fillMaxSize() // Penting!
+                    modifier = Modifier.fillMaxSize()
                 )
                 Text(
                     text = "${time}ms",
