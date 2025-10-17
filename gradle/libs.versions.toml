@@ -11,10 +11,13 @@ composeBom = "2025.10.00"
 runtime = "1.0.0-alpha06"
 accompanistPermissions = "0.37.3"
 cameraCamera2 = "1.5.1"
-tensorflowLite = "2.17.0"
-tensorflowLiteSupport = "0.5.0"
+tensorflowLite = "2.16.1"
+tensorflowLiteGpu = "2.16.1"
+tensorflowLiteGpuApi = "2.16.1"
+tensorflowLiteGpuDelegatePlugin = "0.4.4"
+tensorflowLiteSupport = "0.4.4"
 visionInterfaces = "16.3.0"
-litertGpu = "1.4.0"
+litert = "1.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -39,9 +42,15 @@ androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCamera2" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCamera2" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
+tensorflow-lite-gpu = { module = "org.tensorflow:tensorflow-lite-gpu", version.ref = "tensorflowLiteGpu" }
+tensorflow-lite-gpu-api = { module = "org.tensorflow:tensorflow-lite-gpu-api", version.ref = "tensorflowLiteGpuApi" }
+tensorflow-lite-gpu-delegate-plugin = { module = "org.tensorflow:tensorflow-lite-gpu-delegate-plugin", version.ref = "tensorflowLiteGpuDelegatePlugin" }
 tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflowLiteSupport" }
-vision-interfaces = { group = "com.google.mlkit", name = "vision-interfaces", version.ref = "visionInterfaces" }
-litert-gpu = { group = "com.google.ai.edge.litert", name = "litert-gpu", version.ref = "litertGpu" }
+#vision-interfaces = { group = "com.google.mlkit", name = "vision-interfaces", version.ref = "visionInterfaces" }
+#litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
+#litert-gpu = { group = "com.google.ai.edge.litert", name = "litert-gpu", version.ref = "litert" }
+#litert-metadata = { group = "com.google.ai.edge.litert", name = "litert-metadata", version.ref = "litert" }
+#litert-support = { group = "com.google.ai.edge.litert", name = "litert-support", version.ref = "litert" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

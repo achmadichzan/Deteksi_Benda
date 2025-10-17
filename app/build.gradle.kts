@@ -42,9 +42,15 @@ android {
 dependencies {
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.support)
-    implementation(libs.androidx.runtime)
+    implementation(libs.tensorflow.lite.gpu)
+    implementation(libs.tensorflow.lite.gpu.api)
+    implementation(libs.tensorflow.lite.gpu.delegate.plugin)
+//    implementation(libs.androidx.runtime)
 //    implementation(libs.vision.interfaces)
+//    implementation(libs.litert)
 //    implementation(libs.litert.gpu)
+//    implementation(libs.litert.metadata)
+//    implementation(libs.litert.support)
 
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)

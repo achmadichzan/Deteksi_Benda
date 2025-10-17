@@ -3,9 +3,11 @@ package com.achmadichzan.deteksibenda.components
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
+import android.util.Log
 import androidx.core.graphics.scale
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
+//import org.tensorflow.lite.gpu.GpuDelegate
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.common.ops.CastOp
 import org.tensorflow.lite.support.common.ops.NormalizeOp
@@ -16,6 +18,8 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class Detector(
     private val context: Context,
@@ -24,6 +28,7 @@ class Detector(
     private val detectorListener: DetectorListener
 ) {
     private var interpreter: Interpreter? = null
+//    private var gpuDelegate: GpuDelegate? = null
     private var labels = mutableListOf<String>()
 
     private var tensorWidth = 0
@@ -31,16 +36,31 @@ class Detector(
     private var numChannel = 0
     private var numElements = 0
 
-    private val imageProcessor = ImageProcessor.Builder()
+    private val imageProcessorFloat32 = ImageProcessor.Builder()
         .add(NormalizeOp(INPUT_MEAN, INPUT_STANDARD_DEVIATION))
-        .add(CastOp(INPUT_IMAGE_TYPE))
+        .add(CastOp(INPUT_IMAGE_TYPE_FLOAT32))
         .build()
 
     fun setup() {
         val model = FileUtil.loadMappedFile(context, modelPath)
+
         val options = Interpreter.Options()
         options.numThreads = 4
-        interpreter = Interpreter(model, options)
+
+//        Tidak berhasil
+//        try {
+//            gpuDelegate = GpuDelegate()
+//            options.addDelegate(gpuDelegate)
+//            Log.d("Detector", "SUCCESS: GpuDelegate standar ditambahkan.")
+//        } catch (e: Exception) {
+//            Log.e("Detector", "FAIL: Gagal GpuDelegate standar, beralih ke CPU.", e)
+//        }
+        try {
+            interpreter = Interpreter(model, options)
+        } catch (e: Exception) {
+            Log.e("Detector", "Gagal membuat TFLite Interpreter.", e)
+            return
+        }
 
         val inputShape = interpreter?.getInputTensor(0)?.shape() ?: return
         val outputShape = interpreter?.getOutputTensor(0)?.shape() ?: return
@@ -70,6 +90,8 @@ class Detector(
     fun clear() {
         interpreter?.close()
         interpreter = null
+//        gpuDelegate?.close()
+//        gpuDelegate = null
     }
 
     fun detect(frame: Bitmap) {
@@ -83,18 +105,27 @@ class Detector(
 
         val resizedBitmap = frame.scale(tensorWidth, tensorHeight, false)
 
-        val tensorImage = TensorImage(DataType.FLOAT32)
+        val tensorImage = TensorImage(INPUT_IMAGE_TYPE_FLOAT32)
         tensorImage.load(resizedBitmap)
-        val processedImage = imageProcessor.process(tensorImage)
+        val processedImage = imageProcessorFloat32.process(tensorImage)
         val imageBuffer = processedImage.buffer
 
-        val output = TensorBuffer.createFixedSize(intArrayOf(1 , numChannel, numElements), OUTPUT_IMAGE_TYPE)
+        val output = TensorBuffer.createFixedSize(intArrayOf(1 , numChannel, numElements), OUTPUT_IMAGE_TYPE_FLOAT32)
         interpreter?.run(imageBuffer, output.buffer)
 
+        val outputBuffer = ByteBuffer.allocateDirect(1 * numChannel * numElements * 4)
+        outputBuffer.order(ByteOrder.nativeOrder())
+
+        interpreter?.run(imageBuffer, outputBuffer)
+
+        outputBuffer.rewind()
+        val outputArray = FloatArray(numChannel * numElements)
+        outputBuffer.asFloatBuffer().get(outputArray)
+
+        Log.d("DetectorOutput", "Output Array (GPU): ${outputArray.take(20).joinToString()}") // Ambil 20 nilai pertama
 
         val bestBoxes = bestBox(output.floatArray)
         inferenceTime = SystemClock.uptimeMillis() - inferenceTime
-
 
         if (bestBoxes == null) {
             detectorListener.onEmptyDetect()
@@ -193,8 +224,10 @@ class Detector(
     companion object {
         private const val INPUT_MEAN = 0f
         private const val INPUT_STANDARD_DEVIATION = 255f
-        private val INPUT_IMAGE_TYPE = DataType.FLOAT32
-        private val OUTPUT_IMAGE_TYPE = DataType.FLOAT32
+        private val INPUT_IMAGE_TYPE_FLOAT32 = DataType.FLOAT32
+        private val OUTPUT_IMAGE_TYPE_FLOAT32 = DataType.FLOAT32
+//        private val INPUT_IMAGE_TYPE_INT8 = DataType.UINT8
+//        private val OUTPUT_IMAGE_TYPE_INT8 = DataType.UINT8
         private const val CONFIDENCE_THRESHOLD = 0.3F
         private const val IOU_THRESHOLD = 0.5F
     }
